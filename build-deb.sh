@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 APP_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-VERSION=${VERSION:-0.1.1-1}
+VERSION=${VERSION:-0.1.2-1}
 STAGE="$APP_ROOT/build/package"
 DIST="$APP_ROOT/dist"
 rm -rf "$STAGE"

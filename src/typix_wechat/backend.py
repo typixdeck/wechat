@@ -271,6 +271,12 @@ def launch_native():
                 return child.poll()
 
             def wait(self):
+                # The supervisor may cross its deadline after our last poll.
+                # Its fallback must not synchronously wait for a windowless
+                # live process when compositor observation was established.
+                if session.client is not None and not self.seen:
+                    self.missing_window = True
+                    return 1
                 return child.wait()
 
         lifetime = WindowLifetime()

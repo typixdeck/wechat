@@ -41,7 +41,7 @@ Store 中卸载 `typix-wechat` 只会移除本集成应用；单独安装的腾�
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 ```
 
-产物：`dist/typix-wechat_0.1.1-1_all.deb`。`Architecture: all` 表示本包只有 Python/GTK 集成代码；运行时仍检查官方客户端所需的 ARM64 和系统版本。运行依赖含 GTK3、Typix Store 0.3、Typix Launcher 0.2、PackageKit、pkexec、CA 证书与桌面 MIME 工具。官方包自己的字体依赖由 PackageKit 解析。
+产物：`dist/typix-wechat_0.1.2-1_all.deb`。`Architecture: all` 表示本包只有 Python/GTK 集成代码；运行时仍检查官方客户端所需的 ARM64 和系统版本。运行依赖含 GTK3、Typix Store 0.3、Typix Launcher 0.2、PackageKit、pkexec、CA 证书与桌面 MIME 工具。官方包自己的字体依赖由 PackageKit 解析。
 
 发行版声明包含 Bookworm 和 Trixie；主验收环境为 CM4 的官方 Raspberry Pi OS ARM64 Trixie。Bookworm 依赖运行时架构、系统库与显示能力检查，不能把 Trixie 的验收结果等同于已在 Bookworm 真机验收。
 

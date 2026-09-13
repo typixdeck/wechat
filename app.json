@@ -50,9 +50,9 @@
     }
   },
   "release": {
-    "version": "0.1.1-1",
-    "file": "dist/typix-wechat_0.1.1-1_all.deb",
-    "sha256": "7b1d4d53cb3b3f4e0ecbcc468ddb8ce7e9b7b29a7843c9b4bef86c60971cb0d5"
+    "version": "0.1.2-1",
+    "file": "dist/typix-wechat_0.1.2-1_all.deb",
+    "sha256": "bd92a14fe460c115a91020ea140c2f830ed94e9375e0da5fb0355eb2b3380d21"
   },
   "screenshots": [
     {

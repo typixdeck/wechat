@@ -12,7 +12,7 @@ except ImportError:
 
 @unittest.skipIf(fullscreen is None, "Typix Launcher runtime required")
 class NativeLifecycleTests(unittest.TestCase):
-    def run_client(self, initial=(), events=(), exit_code=7, available=True):
+    def run_client(self, initial=(), events=(), exit_code=7, available=True, clock_values=None):
         now = [0.0]
         self.requests = []
         self.considered = []
@@ -50,7 +50,7 @@ class NativeLifecycleTests(unittest.TestCase):
                 patch.object(backend, "installed_version", return_value=pinned.VERSION), \
                 patch.object(Path, "exists", return_value=True), \
                 patch.object(backend.subprocess, "Popen", return_value=self.child), \
-                patch.object(backend.time, "monotonic", side_effect=lambda: now[0]), \
+                patch.object(backend.time, "monotonic", side_effect=clock_values or (lambda: now[0])), \
                 patch.object(fullscreen, "ForeignToplevelClient", return_value=client), \
                 patch.object(fullscreen, "application_ids", return_value=pinned.NATIVE_IDS), \
                 patch.dict(fullscreen.os.environ, WAYLAND_DISPLAY="test-wayland"):
@@ -90,6 +90,15 @@ class NativeLifecycleTests(unittest.TestCase):
     def test_live_process_without_window_does_not_block_launcher_forever(self):
         with self.assertRaisesRegex(backend.WeChatError, "未检测到微信窗口"):
             self.run_client(exit_code=None)
+        self.child.kill.assert_not_called()
+        self.child.terminate.assert_not_called()
+
+    def test_deadline_crossing_between_poll_and_supervisor_never_waits_synchronously(self):
+        with patch.object(backend.threading, "Thread") as reaper:
+            with self.assertRaisesRegex(backend.WeChatError, "未检测到微信窗口"):
+                self.run_client(exit_code=None, clock_values=[0, 9.999999, 10.000001])
+        self.child.wait.assert_not_called()
+        reaper.assert_called_once()
         self.child.kill.assert_not_called()
         self.child.terminate.assert_not_called()
 
