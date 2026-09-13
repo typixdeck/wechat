@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Official WeChat
+Exec=/usr/bin/wechat
+Terminal=false
+NoDisplay=true
+X-TypixDeck-FullscreenAppId=wechat;

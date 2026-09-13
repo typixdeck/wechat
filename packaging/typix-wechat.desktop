@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=微信
+Name[en]=WeChat
+Comment=安装并启动腾讯官方 Linux ARM64 客户端
+Exec=/usr/bin/typix-wechat
+Icon=internet-chat
+Terminal=false
+Categories=Network;InstantMessaging;
+StartupNotify=true
+X-TypixDeck-LaunchMode=supervised
+X-TypixDeck-FullscreenAppId=ai.typixdeck.wechat;wechat;

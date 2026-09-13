@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+# Isolated interpreter: ignores user Python modules and the invoking directory.
+exec /usr/bin/python3 -I -m typix_wechat.staging "$@"

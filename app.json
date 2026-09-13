@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "repository": "typixdeck/wechat",
+  "distribution": "complete-deb",
+  "application": {
+    "id": "ai.typixdeck.wechat",
+    "package": "typix-wechat",
+    "name": {
+      "zh-CN": "微信（官方客户端安装）",
+      "en": "WeChat native setup"
+    },
+    "summary": {
+      "zh-CN": "从腾讯安装官方 ARM64 微信并全屏启动"
+    },
+    "description": {
+      "zh-CN": "完整原生 GTK3 微信安装适配程序。首次点击安装后从腾讯官网下载原版 ARM64 客户端，核对固定版本与 SHA256，再由系统授权安装；以后从 Launcher 直接打开微信。适配 deb 不内含腾讯客户端，不提供网页版或未授权镜像；登录和消息功能由官方微信提供，需要用户自己的账号。"
+    },
+    "categories": [
+      "Network"
+    ],
+    "desktopFile": "typix-wechat.desktop",
+    "runtime": {
+      "kind": "python-module",
+      "module": "typix_wechat",
+      "root": "/usr/lib/python3/dist-packages"
+    },
+    "requiredPayload": [
+      "/usr/bin/typix-wechat",
+      "/usr/libexec/typix-wechat-stage",
+      "/usr/share/typix-wechat/native.desktop",
+      "/usr/lib/python3/dist-packages/typix_wechat/backend.py",
+      "/usr/lib/python3/dist-packages/typix_wechat/transport.py",
+      "/usr/lib/python3/dist-packages/typix_wechat/pinned.py",
+      "/usr/lib/python3/dist-packages/typix_wechat/__init__.py",
+      "/usr/lib/python3/dist-packages/typix_wechat/app.py",
+      "/usr/lib/python3/dist-packages/typix_wechat/staging.py",
+      "/usr/lib/python3/dist-packages/typix_wechat/__main__.py"
+    ],
+    "compatibility": {
+      "arch": [
+        "arm64"
+      ],
+      "minMemoryMB": 512,
+      "minFreeDiskMB": 1400,
+      "display": [
+        "wayland",
+        "x11"
+      ],
+      "requiredFeatures": []
+    }
+  },
+  "release": {
+    "version": "0.1.0-1",
+    "file": "dist/typix-wechat_0.1.0-1_all.deb",
+    "sha256": "14492064b418225c9224f87b02b46b8c706ec240a7d5f48f9bf7ed26887c5199"
+  },
+  "screenshots": [
+    {
+      "path": "docs/screenshots/setup.png",
+      "caption": "真机首次安装界面；官方微信从腾讯下载"
+    }
+  ]
+}
