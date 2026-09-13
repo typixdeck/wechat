@@ -43,7 +43,7 @@ def label(text, style=None):
 
 
 class WeChatApplication(Gtk.Application):
-    def __init__(self):
+    def __init__(self, startup_error=None):
         super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.FLAGS_NONE)
         self.window = None
         self.busy = False
@@ -51,7 +51,7 @@ class WeChatApplication(Gtk.Application):
         self.cancel_event = threading.Event()
         self.transaction = None
         self.close_when_done = False
-        self.first_activation = True
+        self.startup_error = startup_error
         self.cache = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "typix-wechat/download"
 
     def do_activate(self):
@@ -82,9 +82,12 @@ class WeChatApplication(Gtk.Application):
         root.pack_start(scroll, True, True, 0)
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         scroll.add(content)
-        content.pack_start(label("原生 Linux 客户端", "hero"), False, False, 0)
-        content.pack_start(label("在 TypixDeck 上连接朋友与工作。安装完成后，桌面入口会直接打开官方客户端。", "subtitle"), False, False, 0)
+        self.hero = label("安装微信", "hero")
+        content.pack_start(self.hero, False, False, 0)
+        self.subtitle = label("安装完成后，桌面入口会直接打开微信。", "subtitle")
+        content.pack_start(self.subtitle, False, False, 0)
         info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.install_info = info
         info.get_style_context().add_class("info")
         info.pack_start(label("首次使用需要下载腾讯官方 ARM64 安装包"), False, False, 0)
         info.pack_start(label(f"审核版本 {pinned.VERSION} · 约 200 MiB 下载 · 约 1.3 GiB 可用空间", "subtitle"), False, False, 0)
@@ -110,7 +113,7 @@ class WeChatApplication(Gtk.Application):
         root.pack_end(actions, False, False, 0)
         self.window.show_all()
         self.fullscreen()
-        self.refresh_state(auto_launch=True)
+        self.refresh_state(auto_launch=not self.startup_error)
 
     def fullscreen(self):
         self.window.fullscreen()
@@ -138,14 +141,22 @@ class WeChatApplication(Gtk.Application):
         def done(version, error):
             self.refresh.set_sensitive(True)
             self.installed = version
+            self.update_content()
             self.primary.set_label("打开微信" if version else "下载并安装官方客户端")
             self.primary.set_sensitive(not error)
-            self.status.set_text(error or (f"已安装官方客户端 {version}" if version else "尚未安装。点击下方按钮开始；下载与安装均可查看进度。"))
+            self.status.set_text(error or self.startup_error or (f"已安装官方客户端 {version}" if version else "尚未安装。点击下方按钮开始；下载与安装均可查看进度。"))
+            self.startup_error = None
             self.primary.grab_focus()
             if version and auto_launch and not error:
                 self.start_native()
             return GLib.SOURCE_REMOVE
         self.worker(read, done)
+
+    def update_content(self):
+        self.hero.set_text("打开微信" if self.installed else "安装微信")
+        self.subtitle.set_text("微信已安装。可以重新打开，或返回桌面。" if self.installed
+                               else "安装完成后，桌面入口会直接打开微信。")
+        self.install_info.set_visible(not self.installed)
 
     def set_busy(self, value):
         self.busy = value
@@ -202,6 +213,7 @@ class WeChatApplication(Gtk.Application):
         self.status.set_text("官方客户端安装完成，点击“打开微信”登录。" if success else error or "操作未完成，请检查后重试")
         if success:
             self.installed = pinned.VERSION
+            self.update_content()
             self.primary.set_label("打开微信")
             self.progress.set_fraction(1)
         if self.close_when_done:
@@ -216,6 +228,7 @@ class WeChatApplication(Gtk.Application):
             if error:
                 self.set_busy(False)
                 self.window.show_all()
+                self.update_content()
                 self.fullscreen()
                 self.cancel.set_sensitive(False)
                 self.status.set_text(error)
@@ -253,4 +266,12 @@ def main():
         print("请以普通桌面用户运行微信集成，不要使用 sudo。", file=sys.stderr)
         return 1
     GLib.set_prgname(APP_ID)
-    return WeChatApplication().run(sys.argv)
+    startup_error = None
+    try:
+        if backend.installed_version():
+            # No setup window is created, mapped or registered on this path.
+            backend.launch_native()
+            return 0
+    except Exception as exc:
+        startup_error = str(exc)
+    return WeChatApplication(startup_error=startup_error).run(sys.argv)

@@ -226,27 +226,57 @@ def launch_native():
     preflight()
     require(installed_version() is not None and Path("/usr/bin/wechat").exists(), "官方客户端尚未正确安装")
     entry = Path("/usr/share/typix-wechat/native.desktop")
-    with FullscreenSession(entry) as session:
+
+    class NativeSession(FullscreenSession):
+        def _consider(self, window):
+            # Opening WeChat explicitly selects its existing main window too.
+            # Keep this exception local: generic Launcher baseline protection
+            # still applies to all other apps and to transient dialogs.
+            if window.ready and not window.parent and window.app_id.casefold() in pinned.NATIVE_IDS:
+                self._baseline.discard(window.identifier)
+            super()._consider(window)
+
+    with NativeSession(entry) as session:
         child = subprocess.Popen(["/usr/bin/wechat"], cwd=Path.home(),
                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         class WindowLifetime:
             seen = False
+            missing_window = False
 
             def poll(self):
                 if session.client is not None:
-                    active = any(window.ready and not window.parent and window.app_id.casefold() in pinned.NATIVE_IDS
-                                 for window in session.client.windows.values())
-                    self.seen |= active
-                    if self.seen and not active:
-                        return child.poll() or 0
+                    windows = [window for window in session.client.windows.values()
+                               if window.ready and not window.parent and window.app_id.casefold() in pinned.NATIVE_IDS]
+                    for window in windows:
+                        # Existing handles may emit no new done event. Seed
+                        # them after wait() has established its startup deadline.
+                        session._consider(window)
+                    if windows:
+                        self.seen = True
+                        return None
+                    if self.seen:
+                        # Closing a visible window succeeds even if a forwarding
+                        # helper exited nonzero or the tray process stays alive.
+                        return 0
+                    if time.monotonic() < session._deadline:
+                        # A single-instance helper can exit before its forwarded
+                        # activation maps a window. Allow bounded startup time.
+                        return None
+                    code = child.poll()
+                    if code in (None, 0):
+                        self.missing_window = True
+                        return 1
+                    return code
                 return child.poll()
 
             def wait(self):
                 return child.wait()
 
-        code = session.wait(WindowLifetime())
+        lifetime = WindowLifetime()
+        code = session.wait(lifetime)
         if child.poll() is None:
             # Reap only; never terminate the client's optional tray process.
             threading.Thread(target=child.wait, daemon=True, name="wechat-native-reaper").start()
+        require(not lifetime.missing_window, "未检测到微信窗口，请稍后重试；也可检查客户端是否停留在托盘。")
         require(code == 0, f"官方客户端启动失败（退出码 {code}），请检查系统运行依赖")

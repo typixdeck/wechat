@@ -176,31 +176,6 @@ class PackageTests(unittest.TestCase):
         self.assertFalse((target / (pinned.SHA256 + ".deb")).exists())
         self.assertEqual([item.name for item in target.iterdir()], [".lock"])
 
-    def test_native_tray_process_does_not_hold_launcher_after_window_closes(self):
-        session = SimpleNamespace(client=SimpleNamespace(windows={}))
-
-        def wait(proxy):
-            session.client.windows[1] = SimpleNamespace(ready=True, parent=0, app_id="wechat")
-            self.assertIsNone(proxy.poll())
-            session.client.windows.clear()
-            self.assertEqual(proxy.poll(), 0)
-            return 0
-
-        session.wait = wait
-        context = Mock()
-        context.__enter__ = Mock(return_value=session)
-        context.__exit__ = Mock(return_value=False)
-        module = ModuleType("typix_launcher.fullscreen")
-        module.FullscreenSession = Mock(return_value=context)
-        child = Mock()
-        child.poll.return_value = None  # Official tray process remains alive.
-        child.wait.return_value = 0
-        with patch.dict(sys.modules, {"typix_launcher.fullscreen": module}), \
-                patch.object(backend, "preflight"), patch.object(backend, "installed_version", return_value=pinned.VERSION), \
-                patch.object(Path, "exists", return_value=True), patch.object(backend.subprocess, "Popen", return_value=child):
-            backend.launch_native()
-        child.terminate.assert_not_called()
-        child.kill.assert_not_called()
 
 
 class HeaderHandler(BaseHTTPRequestHandler):

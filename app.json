@@ -50,14 +50,14 @@
     }
   },
   "release": {
-    "version": "0.1.0-1",
-    "file": "dist/typix-wechat_0.1.0-1_all.deb",
-    "sha256": "14492064b418225c9224f87b02b46b8c706ec240a7d5f48f9bf7ed26887c5199"
+    "version": "0.1.1-1",
+    "file": "dist/typix-wechat_0.1.1-1_all.deb",
+    "sha256": "7b1d4d53cb3b3f4e0ecbcc468ddb8ce7e9b7b29a7843c9b4bef86c60971cb0d5"
   },
   "screenshots": [
     {
       "path": "docs/screenshots/setup.png",
-      "caption": "真机首次安装界面；官方微信从腾讯下载"
+      "caption": "CM4 独立 800×600 显示会话中的首次安装界面（未安装状态测试桩）"
     }
   ]
 }

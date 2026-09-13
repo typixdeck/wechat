@@ -1,2 +1,2 @@
 """Native GTK integration for the separately downloaded official WeChat client."""
-__version__ = "0.1.0"
+__version__ = "0.1.1"
